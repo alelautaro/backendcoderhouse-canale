@@ -1,3 +1,18 @@
+const fs = require('fs');
+const path = require('path');
+
+class Product {
+  constructor(id, title, description, price, thumbnail, code, stock) {
+    this.id = id;
+    this.title = title;
+    this.description = description;
+    this.price = price;
+    this.thumbnail = thumbnail;
+    this.code = code;
+    this.stock = stock;
+  }
+}
+
 class ProductManager {
   constructor() {
     this.products = [];
@@ -5,17 +20,17 @@ class ProductManager {
   }
 
   addProduct(product) {
-    const requiredFields = ["title", "description", "price", "thumbnail", "code", "stock"];
-    const missingFields = requiredFields.filter((field) => !product[field]);
+    const requierearchivos = ['title', 'description', 'price', 'thumbnail', 'code', 'stock'];
+    const archivosperdidos = requierearchivos.filter(field => !product[field]);
 
-    if (missingFields.length > 0) {
-      throw new Error(`Archivos no encontrados: ${missingFields.join(", ")}`);
+    if (archivosperdidos.length > 0) {
+      throw new Error(`Faltan campos obligatorios: ${archivosperdidos.join(', ')}`);
     }
 
-    const existingProduct = this.products.find((p) => p.code === product.code);
+    const productoexistente = this.products.find(p => p.code === product.code);
 
-    if (existingProduct) {
-      throw new Error("El producto ya existe");
+    if (productoexistente) {
+      throw new Error('El producto ya existe');
     }
 
     const newProduct = {
@@ -25,6 +40,8 @@ class ProductManager {
 
     this.products.push(newProduct);
     this.idCounter++;
+
+    this.guardarProductos();
   }
 
   getProducts() {
@@ -32,14 +49,62 @@ class ProductManager {
   }
 
   getProductById(id) {
-    const product = this.products.find((p) => p.id === id);
+    const product = this.products.find(p => p.id === id);
 
     if (!product) {
-      throw new Error("Producto no encontrado");
+      throw new Error('Producto no encontrado');
     }
 
     return product;
   }
+
+  updateProduct(id, updatedProduct) {
+    const productIndex = this.products.findIndex(p => p.id === id);
+
+    if (productIndex === -1) {
+      throw new Error('Producto no encontrado');
+    }
+
+   this.products[productIndex] = {
+      ...this.products[productIndex],
+      ...updatedProduct,
+    };
+
+    this.guardarProductos();
+  }
+
+  eliminarProducto(id) {
+    const productIndex = this.products.findIndex(p => p.id === id);
+
+    if (productIndex === -1) {
+      throw new Error('Producto no encontrado');
+    }
+
+    this.products.splice(productIndex, 1);
+    this.guardarProductos();
+  }
+
+  guardarProductos() {
+    const productsJson = JSON.stringify(this.products, null, 2);
+    const filePath = path.join(__dirname, 'products.json');
+    fs.writeFileSync(filePath, productsJson);
+  }
+
+  cargarProductos() {
+    const filePath = path.join(__dirname, 'products.json');
+
+    if (!fs.existsSync(filePath)) {
+      return;
+    }
+
+    const productsJson = fs.readFileSync(filePath, 'utf-8');
+    const products = JSON.parse(productsJson);
+
+    this.products = products;
+    this.idCounter = this.products.length + 1;
+  }
 }
 
-module.exports = ProductManager;
+
+
+module.export(productManager);
